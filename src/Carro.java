@@ -1,4 +1,6 @@
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.stream.Stream;
 
 public class Carro {
 
@@ -40,9 +42,11 @@ public class Carro {
         System.out.println("El preu total és: " +preuTotal);
     }
 
-    //Metode buscar per marca
-    public void producteMarca(){
-        llistaProductes.forEach((marcaProducte)->System.out.println(marcaProducte));
+    //Metode buscar per marca amb lambda e imprimeix el producte trobat
+    public void producteMarca(String marcaProducte){
+       Stream<Producte> producteStream = llistaProductes.stream()
+                                                        .filter(p -> p.getMarcaProducte().equalsIgnoreCase(marcaProducte));
+       producteStream.forEach(producte -> System.out.println(producte.toString()));
     }
 
     //Metode buscar producte al carro per nom i marca

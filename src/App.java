@@ -2,6 +2,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+
 public class App {
 
     public static void main(String[] args) throws NoItems {
@@ -79,7 +80,12 @@ public class App {
                     case 8://Buscar per marca
                         nomCarro = introInfo("Introdueix nom del carro: ");
                         indexCarro = buscarCarro(nomCarro, llistaCarros);
-                        llistaCarros.get(indexCarro).producteMarca();
+                        if(indexCarro==-1){
+                            System.out.println("Carro no existeix");
+                        }else {
+                            marcaProducte = introInfo("Introdueix marca que vols buscar en el carro: ");
+                            llistaCarros.get(indexCarro).producteMarca(marcaProducte);
+                        }
                         break;
                     case 9://Mostrar carros
                         System.out.println(llistaCarros.toString());
@@ -96,7 +102,8 @@ public class App {
                     case 11: //Crear arxiu d'un carro
                         nomCarro = introInfo("Introdueix nom del carro: ");
                         indexCarro = buscarCarro(nomCarro, llistaCarros);
-                        crearArxiu(llistaCarros);
+                        Carro carro = llistaCarros.get(indexCarro);
+                        crearArxiu(carro);
                         break;
                 }
             }
@@ -105,35 +112,39 @@ public class App {
     }
 
     ///////FUNCIONALIDADES DEL PROGRAMA
+    //Metodo para crear un fichero Csv
+    static void crearArxiu(Carro carro) {
 
-    //Metodo para crear un archivo csv con la lista de carros
-    static void crearArxiu(ArrayList<Carro> llistaCarros){
-
-        try {
-
-            // Enviem l'objecte a un fitxer ser, per serialitzar
-            ObjectOutputStream escriureFitxer = new ObjectOutputStream(new FileOutputStream(new File ("C:\\Users\\psyen\\Desktop\\Spring")));
-            escriureFitxer.writeObject(llistaCarros);
-            escriureFitxer.close();
-
-            // desserialitzem el fitxer creat
-            ObjectInputStream recuperarFitxer = new ObjectInputStream(new FileInputStream(new File ("C:\\Users\\psyen\\Desktop\\Spring")));
-            Producte[] llistaProductesRecuperat = (Producte[]) recuperarFitxer.readObject(); // Fem un casting de la llista per transformar a objecte
-            recuperarFitxer.close();
-
-            for (Producte llista : llistaProductesRecuperat) { // Recorrem la llista per imprimir
-                System.out.println(llista);
+        final String CSV_SEPARATOR = ",";
+        {
+            try {
+                BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("productes.csv"), "UTF-8"));
+                for (Producte producte : carro.getLlistaProductes()) {
+                    StringBuffer oneLine = new StringBuffer();
+                    oneLine.append(producte.getNomProducte().trim().length() == 0 ? "" : producte.getNomProducte());
+                    oneLine.append(CSV_SEPARATOR);
+                    oneLine.append(producte.getMarcaProducte().trim().length() == 0 ? "" : producte.getMarcaProducte());
+                    oneLine.append(CSV_SEPARATOR);
+                    oneLine.append(producte.getPreu() < 0 ? "" : producte.getPreu());
+                    oneLine.append(CSV_SEPARATOR);
+                    oneLine.append(producte.getQuantitatProducte() < 0 ? "" : producte.getQuantitatProducte());
+                    oneLine.append(CSV_SEPARATOR);
+                    bw.write(oneLine.toString());
+                    bw.newLine();
+                }
+                bw.flush();
+                bw.close();
+            } catch (UnsupportedEncodingException e) {
+            } catch (FileNotFoundException e) {
+            } catch (IOException e) {
             }
-
-        } catch (Exception error) {
-
         }
     }
     //Mostrar productes d'un carro si no hi ha productes salta exception
     static void mostraProductesCarro (int indexCarro, ArrayList<Carro> llistaCarros) throws NoItems {
 
         if(llistaCarros.get(indexCarro).getLlistaProductes().isEmpty()){
-            throw new NoItems("El carro està buit!");
+            throw new NoItems("El carro està buit!. Has d'afegir productes.");
         }else{
                 System.out.println(llistaCarros.get(indexCarro).getLlistaProductes());
             }
@@ -184,6 +195,7 @@ public class App {
     }
     //Modificar producte
     static void modificarProducte(int indexCarro, ArrayList<Carro> llistaCarros) {
+        Scanner input = new Scanner(System.in);
         int quantitatProducte, indexProducte=-1;
         String nomProducte,marcaProducte ;
 
@@ -191,13 +203,14 @@ public class App {
         marcaProducte = introInfo("Introdueix marca del producte: ");
         indexProducte = llistaCarros.get(indexCarro).buscarProducte(nomProducte, marcaProducte);
         if(indexProducte!=-1){
+            input.nextLine();//neteja buffer
             quantitatProducte =introInfoInt("Introdueix quantitat:");
             llistaCarros.get(indexCarro).getLlistaProductes().get(indexProducte).setQuantitatProducte(quantitatProducte);
         }else{
             System.out.println("Producte no existeix, en aquest carro");
         }
 
-        System.out.println("Quantitat de producte modificada: ");
+        System.out.println("Quantitat de producte modificada. ");
     }
 
 
